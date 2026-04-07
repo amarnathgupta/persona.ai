@@ -6,16 +6,19 @@ const personaSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+      minLength: [3, "Name must be at least 3 characters long"],
     },
     description: {
       type: String,
       required: true,
       trim: true,
+      minLength: [10, "Description must be at least 10 characters long"],
     },
     systemPrompt: {
       type: String,
       required: true,
       trim: true,
+      minLength: [10, "System prompt must be at least 10 characters long"],
     },
     tone: {
       type: String,
@@ -51,7 +54,7 @@ const personaSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-personaSchema.index({ name: "text", tags: 1 });
+personaSchema.index({ name: "text", description: "text" });
 
 const Persona = mongoose.model("Persona", personaSchema);
 
