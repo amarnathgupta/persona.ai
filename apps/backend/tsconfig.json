@@ -1,9 +1,8 @@
 {
   "compilerOptions": {
-    "ignoreDeprecations": "6.0",
-    "baseUrl": ".",
     "paths": {
-      "@shared": ["../../packages/shared/index.ts"]
+      "@shared": ["../../packages/shared/index.ts"],
+      "src/*": ["./src/*"]
     },
     "moduleResolution": "bundler",
     "strict": true
