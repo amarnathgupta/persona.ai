@@ -7,4 +7,5 @@ export const env = {
   MONGO_URI: process.env.MONGO_URI,
   PORT: process.env.PORT,
   BCRYPT_SALT_ROUNDS: Number(process.env.BCRYPT_SALT_ROUNDS || "11"),
+  JWT_SECRET: process.env.JWT_SECRET,
 };
