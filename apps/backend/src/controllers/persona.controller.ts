@@ -136,11 +136,33 @@ export const updatePersonaController = asyncHandler(
       return sendResponse(res, 404, false, "persona not found", null);
     }
 
+    // TODO: invalidate REDIS cache
+
     return sendResponse(
       res,
       200,
       true,
       "persona updated successfully",
+      persona,
+    );
+  },
+);
+
+export const deletePersonaController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const id = validateObjectId(req.params.id as string);
+    const persona = await Persona.findByIdAndDelete(id);
+    if (!persona) {
+      return sendResponse(res, 404, false, "persona not found", null);
+    }
+
+    // TODO: invalidate REDIS cache
+
+    return sendResponse(
+      res,
+      200,
+      true,
+      "persona deleted successfully",
       persona,
     );
   },
