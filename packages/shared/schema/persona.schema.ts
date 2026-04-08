@@ -51,3 +51,16 @@ export const personaSchema = z.object({
 
   totalChats: z.number().default(0),
 });
+
+export const querySchema = z.object({
+  page: z
+    .string()
+    .optional()
+    .transform((val) => parseInt(val || "1")),
+  limit: z
+    .string()
+    .optional()
+    .transform((val) => Math.min(parseInt(val || "10"), 20)),
+  search: z.string().optional(),
+  tag: z.string().optional(),
+});

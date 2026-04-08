@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
-import { personaSchema } from "@shared";
+import { personaSchema, querySchema } from "@shared";
 import Persona from "src/models/persona.model";
 import { asyncHandler, sendResponse } from "src/utils";
+import mongoose from "mongoose";
 
 export const createPersonaController = asyncHandler(
   async (req: Request, res: Response) => {
@@ -32,11 +33,20 @@ export const createPersonaController = asyncHandler(
 
 export const getAllPersonasController = asyncHandler(
   async (req: Request, res: Response) => {
-    const { page, limit, search, tag } = req.query;
-    const pageInt = parseInt(page as string) || 1;
-    const limitInt = Math.min(parseInt(limit as string) || 10, 20);
+    const response = querySchema.safeParse(req.query);
+    if (!response.success) {
+      return sendResponse(
+        res,
+        400,
+        false,
+        "invalid request query",
+        null,
+        response.error.issues,
+      );
+    }
+    const { page, limit, search, tag } = response.data;
 
-    const skip = (pageInt - 1) * limitInt;
+    const skip = (page - 1) * limit;
 
     const filter: any = {};
 
@@ -51,7 +61,7 @@ export const getAllPersonasController = asyncHandler(
       filter.tags = { $in: tagArray };
     }
 
-    const query = Persona.find(filter).limit(limitInt).skip(skip);
+    const query = Persona.find(filter).limit(limit).skip(skip);
 
     if (search) {
       query
@@ -69,9 +79,36 @@ export const getAllPersonasController = asyncHandler(
     return sendResponse(res, 200, true, "personas fetched successfully", {
       personas,
       total,
-      page: pageInt,
-      limit: limitInt,
-      pages: Math.ceil(total / limitInt),
+      page,
+      limit,
+      pages: Math.ceil(total / limit),
     });
+  },
+);
+
+const validateObjectId = (id?: string) => {
+  if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+    throw new Error("Invalid ID");
+  }
+  return id;
+};
+
+export const getPersonaByIdController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const id = validateObjectId(req.params.id as string);
+
+    // TODO: check through REDIS cache
+
+    const persona = await Persona.findById(id).lean();
+    if (!persona) {
+      return sendResponse(res, 404, false, "persona not found", null);
+    }
+    return sendResponse(
+      res,
+      200,
+      true,
+      "persona fetched successfully",
+      persona,
+    );
   },
 );
