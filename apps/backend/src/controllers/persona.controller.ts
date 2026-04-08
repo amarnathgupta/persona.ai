@@ -17,10 +17,14 @@ export const createPersonaController = asyncHandler(
         body.error.issues,
       );
     }
+
     const data = body.data;
     data.personality = data.personality || {};
     data.tags = data.tags || [];
+    data.createdBy = req.user.id;
+
     const persona = await Persona.create(data);
+
     return sendResponse(
       res,
       201,
