@@ -7,6 +7,7 @@
     "dev": "bun run ./src/index.ts"
   },
   "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
     "@types/bun": "latest",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
@@ -19,12 +20,13 @@
   "dependencies": {
     "@prisma/adapter-pg": "^7.6.0",
     "@prisma/client": "^7.6.0",
+    "@shared": "workspace:*",
+    "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.1",
     "express": "^5.2.1",
     "mongoose": "^9.4.1",
     "pg": "^8.20.0",
-    "zod": "^4.3.6",
-    "@shared": "workspace:*"
+    "zod": "^4.3.6"
   }
 }
