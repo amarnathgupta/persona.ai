@@ -52,6 +52,13 @@ export const personaSchema = z.object({
   totalChats: z.number().default(0),
 });
 
+export const createPersonaSchema = personaSchema;
+
+export const updatePersonaSchema = personaSchema.partial().omit({
+  createdBy: true,
+  totalChats: true,
+});
+
 export const querySchema = z.object({
   page: z
     .string()

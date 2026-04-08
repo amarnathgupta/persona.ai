@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
-import { personaSchema, querySchema } from "@shared";
+import { createPersonaSchema, querySchema, updatePersonaSchema } from "@shared";
 import Persona from "src/models/persona.model";
 import { asyncHandler, sendResponse } from "src/utils";
 import mongoose from "mongoose";
 
 export const createPersonaController = asyncHandler(
   async (req: Request, res: Response) => {
-    const body = personaSchema.safeParse(req.body);
+    const body = createPersonaSchema.safeParse(req.body);
     if (!body.success) {
       return sendResponse(
         res,
@@ -108,6 +108,39 @@ export const getPersonaByIdController = asyncHandler(
       200,
       true,
       "persona fetched successfully",
+      persona,
+    );
+  },
+);
+
+export const updatePersonaController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const id = validateObjectId(req.params.id as string);
+    const body = updatePersonaSchema.safeParse(req.body);
+    if (!body.success) {
+      return sendResponse(
+        res,
+        400,
+        false,
+        "invalid request body",
+        null,
+        body.error.issues,
+      );
+    }
+    const data = body.data;
+    const persona = await Persona.findByIdAndUpdate(id, data, {
+      returnDocument: "after",
+      runValidators: true,
+    });
+    if (!persona) {
+      return sendResponse(res, 404, false, "persona not found", null);
+    }
+
+    return sendResponse(
+      res,
+      200,
+      true,
+      "persona updated successfully",
       persona,
     );
   },
