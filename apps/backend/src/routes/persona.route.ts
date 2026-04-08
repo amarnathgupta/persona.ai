@@ -1,8 +1,12 @@
 import { Router } from "express";
-import { createPersonaController } from "src/controllers";
+import {
+  createPersonaController,
+  getAllPersonasController,
+} from "src/controllers";
 
 const personaRouter = Router();
 
 personaRouter.post("/", createPersonaController);
+personaRouter.get("/", getAllPersonasController);
 
 export default personaRouter;
