@@ -107,3 +107,23 @@ export const loginController = asyncHandler(
     });
   },
 );
+
+export const getMeController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const id = req.user.id;
+    const user = await prisma.user.findUnique({
+      where: {
+        id,
+      },
+      omit: {
+        password: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+    if (!user) {
+      return sendResponse(res, 404, false, "user not found", null);
+    }
+    return sendResponse(res, 200, true, "user fetched successfully", user);
+  },
+);

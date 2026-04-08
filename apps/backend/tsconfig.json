@@ -5,6 +5,7 @@
       "src/*": ["./src/*"]
     },
     "moduleResolution": "bundler",
-    "strict": true
+    "strict": true,
+    "typeRoots": ["./node_modules/@types", "./src/types"]
   }
 }
