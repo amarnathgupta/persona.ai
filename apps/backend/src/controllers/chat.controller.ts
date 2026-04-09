@@ -96,3 +96,62 @@ export const getChatsController = asyncHandler(
     });
   },
 );
+
+export const getChatMessagesController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const id = req.params.chatId as string;
+    if (!id) {
+      return sendResponse(res, 400, false, "Invalid chat id", null);
+    }
+    const userId = req.user.id;
+    const chatExists = await prisma.chat.findFirst({
+      where: {
+        id,
+        userId,
+      },
+    });
+    if (!chatExists) {
+      return sendResponse(res, 404, false, "Chat not found", null);
+    }
+    const query = paginationSchema.safeParse(req.query);
+    if (!query.success) {
+      return sendResponse(
+        res,
+        400,
+        false,
+        "invalid request query",
+        null,
+        query.error.issues,
+      );
+    }
+    const { page, limit } = query.data;
+    const skip = (page - 1) * limit;
+
+    const [messages, total] = await Promise.all([
+      prisma.message.findMany({
+        where: {
+          chatId: id,
+        },
+        skip,
+        take: limit,
+        orderBy: {
+          createdAt: "desc",
+        },
+      }),
+      prisma.message.count({
+        where: {
+          chatId: id,
+        },
+      }),
+    ]);
+    return sendResponse(res, 200, true, "Messages fetched successfully", {
+      messages,
+      meta: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit),
+      },
+    });
+  },
+);
