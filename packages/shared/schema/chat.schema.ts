@@ -21,3 +21,8 @@ export const paginationSchema = z.object({
     .transform((val) => (val ? parseInt(val) : 10))
     .refine((val) => val > 0 && val <= 20, "Limit must be 1-20"),
 });
+
+export const deleteMessageSchema = z.object({
+  messageId: z.string(),
+  chatId: z.string(),
+});

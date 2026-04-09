@@ -2,7 +2,11 @@ import { Request, Response } from "express";
 import { prisma } from "src/lib/prisma";
 import Persona from "src/models/persona.model";
 import { asyncHandler, sendResponse } from "src/utils";
-import { createChatSchema, paginationSchema } from "@shared";
+import {
+  createChatSchema,
+  deleteMessageSchema,
+  paginationSchema,
+} from "@shared";
 
 export const createChatController = asyncHandler(
   async (req: Request, res: Response) => {
@@ -153,5 +157,71 @@ export const getChatMessagesController = asyncHandler(
         pages: Math.ceil(total / limit),
       },
     });
+  },
+);
+
+export const deleteChatController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const id = req.params.chatId as string;
+    if (!id) {
+      return sendResponse(res, 400, false, "Invalid chat id", null);
+    }
+    const userId = req.user.id;
+    try {
+      await prisma.chat.delete({
+        where: {
+          id,
+          userId,
+        },
+      });
+      return sendResponse(res, 200, true, "Chat deleted successfully", null);
+    } catch (error: any) {
+      if (error.code === "P2025") {
+        return sendResponse(res, 404, false, "Chat not found", null);
+      } else {
+        throw error;
+      }
+    }
+  },
+);
+
+export const deleteMessageController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const params = deleteMessageSchema.safeParse(req.params);
+    if (!params.success) {
+      return sendResponse(
+        res,
+        400,
+        false,
+        "Invalid chat id or message id",
+        null,
+      );
+    }
+    const { chatId, messageId } = params.data;
+    const userId = req.user.id;
+    const chatExists = await prisma.chat.findFirst({
+      where: {
+        id: chatId as string,
+        userId,
+      },
+    });
+    if (!chatExists) {
+      return sendResponse(res, 404, false, "Message not found", null);
+    }
+    try {
+      await prisma.message.delete({
+        where: {
+          id: messageId,
+          chatId,
+        },
+      });
+      return sendResponse(res, 200, true, "Message deleted successfully", null);
+    } catch (error: any) {
+      if (error.code === "P2025") {
+        return sendResponse(res, 404, false, "Message not found", null);
+      } else {
+        throw error;
+      }
+    }
   },
 );
