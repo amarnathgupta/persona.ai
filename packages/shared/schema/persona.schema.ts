@@ -63,11 +63,13 @@ export const querySchema = z.object({
   page: z
     .string()
     .optional()
-    .transform((val) => parseInt(val || "1")),
+    .transform((val) => parseInt(val || "1"))
+    .refine((val) => val > 0, "Page must be greater than 0"),
   limit: z
     .string()
     .optional()
-    .transform((val) => Math.min(parseInt(val || "10"), 20)),
+    .transform((val) => Math.min(parseInt(val || "10"), 20))
+    .refine((val) => val > 0 && val <= 20, "Limit must be 1-20"),
   search: z.string().optional(),
   tag: z.string().optional(),
 });

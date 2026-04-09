@@ -82,10 +82,12 @@ export const getAllPersonasController = asyncHandler(
 
     return sendResponse(res, 200, true, "personas fetched successfully", {
       personas,
-      total,
-      page,
-      limit,
-      pages: Math.ceil(total / limit),
+      meta: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit),
+      },
     });
   },
 );
