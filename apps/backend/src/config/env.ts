@@ -8,4 +8,5 @@ export const env = {
   PORT: process.env.PORT,
   BCRYPT_SALT_ROUNDS: Number(process.env.BCRYPT_SALT_ROUNDS || "11"),
   JWT_SECRET: process.env.JWT_SECRET,
+  OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
 };
