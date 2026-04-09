@@ -26,3 +26,10 @@ export const deleteMessageSchema = z.object({
   messageId: z.string(),
   chatId: z.string(),
 });
+
+export const createMessageSchema = z.object({
+  content: z
+    .string()
+    .trim()
+    .min(1, "Message must be at least 1 character long"),
+});

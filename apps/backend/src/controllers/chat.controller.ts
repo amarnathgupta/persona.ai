@@ -4,9 +4,12 @@ import Persona from "src/models/persona.model";
 import { asyncHandler, sendResponse } from "src/utils";
 import {
   createChatSchema,
+  createMessageSchema,
   deleteMessageSchema,
   paginationSchema,
 } from "@shared";
+import { Role } from "../../generated/prisma/enums";
+import { buildSystemPrompt, generateReply } from "src/services/ai.service";
 
 export const createChatController = asyncHandler(
   async (req: Request, res: Response) => {
@@ -223,5 +226,81 @@ export const deleteMessageController = asyncHandler(
         throw error;
       }
     }
+  },
+);
+
+export const createChatMessageController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const chatId = req.params.chatId as string;
+    const userId = req.user.id;
+    const body = createMessageSchema.safeParse(req.body);
+    if (!body.success) {
+      return sendResponse(
+        res,
+        400,
+        false,
+        "invalid request body",
+        null,
+        body.error.issues,
+      );
+    }
+    const { content } = body.data;
+
+    const chatExists = await prisma.chat.findFirst({
+      where: {
+        id: chatId,
+        userId,
+      },
+    });
+    if (!chatExists) {
+      return sendResponse(res, 404, false, "Chat not found", null);
+    }
+
+    const personaId = chatExists.personaId;
+    const persona = await Persona.findById(personaId);
+    if (!persona) {
+      return sendResponse(res, 404, false, "Persona not found", null);
+    }
+
+    const systemPrompt = buildSystemPrompt(persona);
+    const messages = await prisma.message.findMany({
+      where: {
+        chatId,
+      },
+      skip: 0,
+      take: 20,
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+    const orderedMessages = messages.reverse().map((message) => ({
+      role: message.role,
+      content: message.content,
+    }));
+
+    const response = await generateReply(systemPrompt, orderedMessages);
+
+    await prisma.message.createMany({
+      data: [
+        {
+          chatId,
+          role: Role.user,
+          content,
+        },
+        {
+          chatId,
+          role: Role.assistant,
+          content: response,
+        },
+      ],
+    });
+
+    return sendResponse(
+      res,
+      201,
+      true,
+      "Message created successfully",
+      response,
+    );
   },
 );

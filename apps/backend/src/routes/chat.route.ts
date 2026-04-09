@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   createChatController,
+  createChatMessageController,
   deleteChatController,
   deleteMessageController,
   getChatMessagesController,
@@ -14,6 +15,7 @@ chatRouter.use(authMiddleware);
 chatRouter.post("/", createChatController);
 chatRouter.get("/", getChatsController);
 chatRouter.get("/:chatId/messages", getChatMessagesController);
+chatRouter.post("/:chatId/messages", createChatMessageController);
 chatRouter.delete("/:chatId", deleteChatController);
 chatRouter.delete("/:chatId/messages/:messageId", deleteMessageController);
 
