@@ -2,6 +2,10 @@
 
 Express + TypeScript backend for Persona.ai. Handles auth, persona management, and AI-powered chat.
 
+## Architecture
+
+![Architecture](./assets/images/image.png)
+
 ## Tech Stack
 
 | Layer        | Tool                 |
@@ -11,6 +15,7 @@ Express + TypeScript backend for Persona.ai. Handles auth, persona management, a
 | Postgres ORM | Prisma               |
 | Mongo ODM    | Mongoose             |
 | AI           | OpenRouter           |
+| Cache        | Redis                |
 
 ## Project Structure
 
@@ -19,7 +24,7 @@ src/
 ├── config/         env vars
 ├── controllers/    route handlers (auth, chat, persona)
 ├── db/             database connection setup
-├── lib/            prisma client instance
+├── lib/            prisma, redis client instance
 ├── middlewares/    auth, creatorOnly, error handler
 ├── models/         Mongoose Persona model
 ├── routes/         Express routers

@@ -10,6 +10,7 @@ import {
 } from "@shared";
 import { Role } from "../../generated/prisma/enums";
 import { buildSystemPrompt, generateReply } from "src/services/ai.service";
+import redisClient from "src/lib/redis";
 
 export const createChatController = asyncHandler(
   async (req: Request, res: Response) => {
@@ -257,9 +258,19 @@ export const createChatMessageController = asyncHandler(
     }
 
     const personaId = chatExists.personaId;
-    const persona = await Persona.findById(personaId);
+
+    // check if persona exists in cache
+    let persona = await redisClient.get(`persona:${personaId}`);
     if (!persona) {
-      return sendResponse(res, 404, false, "Persona not found", null);
+      persona = await Persona.findById(personaId);
+      if (!persona) {
+        return sendResponse(res, 404, false, "Persona not found", null);
+      }
+
+      // save persona in cache
+      await redisClient.set(`persona:${personaId}`, JSON.stringify(persona), {
+        EX: 5 * 60, // 5 minutes
+      });
     }
 
     const systemPrompt = buildSystemPrompt(persona);

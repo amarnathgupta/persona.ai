@@ -3,6 +3,7 @@ import { createPersonaSchema, querySchema, updatePersonaSchema } from "@shared";
 import Persona from "src/models/persona.model";
 import { asyncHandler, sendResponse } from "src/utils";
 import mongoose from "mongoose";
+import redisClient from "src/lib/redis";
 
 export const createPersonaController = asyncHandler(
   async (req: Request, res: Response) => {
@@ -103,12 +104,29 @@ export const getPersonaByIdController = asyncHandler(
   async (req: Request, res: Response) => {
     const id = validateObjectId(req.params.id as string);
 
-    // TODO: check through REDIS cache
+    // check if persona exists in cache
+    const response = await redisClient.get(`persona:${id}`);
+    if (response) {
+      return sendResponse(
+        res,
+        200,
+        true,
+        "persona fetched successfully REDIS",
+        JSON.parse(response),
+      );
+    }
 
+    // check if persona exists in database
     const persona = await Persona.findById(id).lean();
     if (!persona) {
       return sendResponse(res, 404, false, "persona not found", null);
     }
+
+    // save persona in cache
+    await redisClient.set(`persona:${id}`, JSON.stringify(persona), {
+      EX: 5 * 60, // 5 minutes
+    });
+
     return sendResponse(
       res,
       200,
@@ -142,7 +160,7 @@ export const updatePersonaController = asyncHandler(
       return sendResponse(res, 404, false, "persona not found", null);
     }
 
-    // TODO: invalidate REDIS cache
+    await redisClient.del(`persona:${id}`);
 
     return sendResponse(
       res,
@@ -162,7 +180,7 @@ export const deletePersonaController = asyncHandler(
       return sendResponse(res, 404, false, "persona not found", null);
     }
 
-    // TODO: invalidate REDIS cache
+    await redisClient.del(`persona:${id}`);
 
     return sendResponse(
       res,
